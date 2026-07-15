@@ -24,7 +24,7 @@ def _adb_run(
 
     try:
         for input in inputs:
-            temp_file = f'/tmp/{uuid.uuid4()}.{os.path.basename(input)}'
+            temp_file = f'/var/tmp/{uuid.uuid4()}.{os.path.basename(input)}'
 
             subprocess.check_call(['adb', 'push', input, temp_file])
 
@@ -34,7 +34,7 @@ def _adb_run(
             if output in temp_files:
                 continue
 
-            temp_file = f'/tmp/{uuid.uuid4()}.{os.path.basename(output)}'
+            temp_file = f'/var/tmp/{uuid.uuid4()}.{os.path.basename(output)}'
             temp_files[output] = temp_file
 
         for exec in execs:

@@ -64,7 +64,7 @@ class CustotaModule(Module):
                 modules.zip_extract(z, path, system_fs)
 
             # Add SELinux rules.
-            with tempfile.NamedTemporaryFile(delete_on_close=False) as f_temp:
+            with tempfile.NamedTemporaryFile(dir='/var/tmp/', delete_on_close=False) as f_temp:
                 with z.open(f'custota-selinux.{self.abi}') as f_exe:
                     shutil.copyfileobj(f_exe, f_temp)
                 os.fchmod(f_temp.fileno(), 0o700)
