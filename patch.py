@@ -315,7 +315,7 @@ def main():
         format='\x1b[1m[%(levelname)s] %(message)s\x1b[0m',
     )
 
-    with tempfile.TemporaryDirectory() as temp_dir:
+    with tempfile.TemporaryDirectory(dir='/var/tmp/') as temp_dir:
         exit_code = 0
 
         try:
