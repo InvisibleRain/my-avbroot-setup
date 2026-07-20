@@ -75,6 +75,20 @@ def get_signed_module_args(args: argparse.Namespace, name: str, public_key: str)
 
     return zip
 
+# FIXME: We should verify signature of MindTheGapps
+def add_unsigned_module_args(parser: argparse.ArgumentParser, name: str):
+    parser.add_argument(
+        f'--module-{name}',
+        type=Path,
+        help=f'{name} module zip',
+    )
+
+def get_unsigned_module_args(args: argparse.Namespace, name: str) -> Path:
+    zip: Path | None = getattr(args, f'module_{name}')
+    if zip is None:
+        raise MissingArgs()
+
+    return zip
 
 def zip_extract(
     zip: zipfile.ZipFile,
@@ -130,6 +144,8 @@ def all_modules() -> list[type[Module]]:
     from lib.modules.custota import CustotaModule
     from lib.modules.msd import MSDModule
     from lib.modules.oemunlockonboot import OEMUnlockOnBootModule
+    from lib.modules.mtgapps import MTGappsModule
+
 
     return [
         AlterInstallerModule,
@@ -137,4 +153,5 @@ def all_modules() -> list[type[Module]]:
         CustotaModule,
         MSDModule,
         OEMUnlockOnBootModule,
+        MTGappsModule,
     ]
