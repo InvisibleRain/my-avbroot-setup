@@ -148,6 +148,11 @@ def parse_args():
         action='store_true',
         help='Skip creating Custota csig file and update JSON file',
     )
+    parser.add_argument(
+        '--tmp-dir-base',
+        type=Path,
+        help='Temporary directory to unpack images into'
+    )
 
     for module_type in modules.all_modules():
         module_type.add_args(parser)
@@ -315,7 +320,17 @@ def main():
         format='\x1b[1m[%(levelname)s] %(message)s\x1b[0m',
     )
 
-    with tempfile.TemporaryDirectory(dir='/var/tmp/') as temp_dir:
+    if args.tmp_dir_base is not None and not args.tmp_dir_base.is_dir():
+        logging.critical('--tmp-dir-base must be a directory')
+        exit_code = 2
+        exit(exit_code)
+
+    if args.tmp_dir_base is not None:
+        tmp_dir_base=args.tmp_dir_base
+    else:
+        tmp_dir_base='/tmp'
+
+    with tempfile.TemporaryDirectory(dir=tmp_dir_base) as temp_dir:
         exit_code = 0
 
         try:
