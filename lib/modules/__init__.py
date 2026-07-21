@@ -29,6 +29,21 @@ SSH_PUBLIC_KEY_CHENXIAOLONG = \
 class MissingArgs(Exception):
     pass
 
+# FIXME: We should verify signature of MindTheGapps
+# and F-Droid
+def add_unsigned_module_args(parser: argparse.ArgumentParser, name: str):
+    parser.add_argument(
+        f'--module-{name}',
+        type=Path,
+        help=f'{name} module zip',
+    )
+
+def get_unsigned_module_args(args: argparse.Namespace, name: str) -> Path:
+    zip: Path | None = getattr(args, f'module_{name}')
+    if zip is None:
+        raise MissingArgs()
+
+    return zip
 
 def verify_ssh_sig(zip: Path, sig: Path, public_key: str):
     logger.info(f'Verifying SSH signature: {zip}')
@@ -145,7 +160,7 @@ def all_modules() -> list[type[Module]]:
     from lib.modules.msd import MSDModule
     from lib.modules.oemunlockonboot import OEMUnlockOnBootModule
     from lib.modules.mtgapps import MTGappsModule
-
+    from lib.modules.fdroid import FdroidPrivilegedExtension
 
     return [
         AlterInstallerModule,
@@ -154,4 +169,5 @@ def all_modules() -> list[type[Module]]:
         MSDModule,
         OEMUnlockOnBootModule,
         MTGappsModule,
+        FdroidPrivilegedExtension,
     ]
