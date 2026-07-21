@@ -29,7 +29,7 @@ class  MTGappsModule(Module):
     def requirements(self) -> ModuleRequirements:
         return ModuleRequirements(
             boot_images=set(),
-            ext_images={'system','product','system_ext'},
+            ext_images={'system'},  
             selinux_patching=False,
         )
         
@@ -42,40 +42,38 @@ class  MTGappsModule(Module):
     ) -> None:
         logger.info(f'Injecting Mind The Gapps: {self.zip}')
 
+        system_fs = ext_fs['system']
+
         # Copy files. Built for Android 16 version of Mind The Gapps
         with zipfile.ZipFile(self.zip, 'r') as z:
             for path in z.namelist():
                 if zipfile.Path(z, at=path).is_dir():
                     continue
-                if path.startswith(('system/product', 'system/system_ext')):
-                    f = path.replace('system/product/', '', 1)
-                    f = f.replace('system/system_ext/', '', 1)
+                if path.startswith(('system/product/', 'system/system_ext/')):
+                    f = path.removeprefix('system/product/')
+                    f = f.removeprefix('system/system_ext/')
                     if any(s in path for s in (
                                         # 'GoogleTTS',
                                         # 'MarkupGoogle',
-                                        'SpeechServicesByGoogle',
-                                        'talkback',
+                                        # 'SpeechServicesByGoogle',
+                                        # 'talkback',
                                         # 'GoogleRestore',
-                                        'Velvet',
-                                        'VelvetTitan',
-                                        'Wellbeing',
-                                        'SetupWizard',
-                                        'AndroidAutoStub',
-                                        'GoogleContactsSyncAdapter',
+                                        # 'Velvet',
+                                        # 'VelvetTitan',
+                                        # 'Wellbeing',
+                                        # 'SetupWizard',
+                                        # 'AndroidAutoStub',
+                                        # 'GoogleContactsSyncAdapter',
                                         # 'GoogleCalendarSyncAdapter',
-                                        'PrebuiltExchange3Google',
-                                        'GoogleFeedback',
+                                        # 'PrebuiltExchange3Google',
+                                        # 'GoogleFeedback',
                     )):
                         logger.info(f'... skipping {f}')
                         continue
 
-                    # Extract file contents.
-                    if path.startswith('system/system_ext'):
-                        system_fs = ext_fs['system_ext']
-                        modules.zip_extract(z, path, system_fs, output=path)
-                    elif path.startswith('system/product'):
-                        system_fs = ext_fs['product']
-                        modules.zip_extract(z, path, system_fs, output=path)
-                    elif path.startswith('system'):
-                        system_fs = ext_fs['system']
-                        modules.zip_extract(z, path, system_fs, output=path)
+                    # Extract files into system.img
+                    print(path)
+                    modules.zip_extract(z, path, system_fs, output=f'system/{f}')
+                    modules.zip_extract(z, path, system_fs, output=f'system/{f}')
+                elif path.startswith('system/'):
+                     modules.zip_extract(z, path, system_fs, output=path)
