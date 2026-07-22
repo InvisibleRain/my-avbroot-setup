@@ -72,7 +72,6 @@ class  MTGappsModule(Module):
                         continue
 
                     # Extract files into system.img
-                    print(path)
                     modules.zip_extract(z, path, system_fs, output=f'system/{f}')
                     modules.zip_extract(z, path, system_fs, output=f'system/{f}')
                 elif path.startswith('system/'):
