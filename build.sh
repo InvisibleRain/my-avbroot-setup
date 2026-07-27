@@ -12,6 +12,7 @@ json=$(curl -s $api_url)
 filepath=$(jq -r .[0].files[0].filepath <(echo $json))
 filename=$(jq -r .[0].files[0].filename <(echo $json))
 download_url="${mirrorbits_base}${filepath}"
+echo "Downloading $filename"
 curl -sL $download_url -o ${out_dir}/${filename}
 
 date=$(jq -r .[0].date <(echo $json) | tr -d '-')
@@ -39,6 +40,7 @@ podman run \
 	--module-bcr /mnt/BCR-3.4-release.zip \
 	--module-oemunlockonboot /mnt/OEMUnlockOnBoot-1.4-release.zip \
 
+echo "Moving ${patched_filename} to ${out_dir}"
 rm -f $ota_dir/*.zip
 mv ${out_dir}/${patched_filename} $ota_dir
 systemctl restart podman-compose@lineageota.service
