@@ -41,6 +41,6 @@ podman run \
 	--module-oemunlockonboot /mnt/OEMUnlockOnBoot-1.4-release.zip
 
 echo "Moving ${patched_filename} to ${out_dir}"
-rm -f $ota_dir/*.zip
+rm -f $ota_dir/*.zip ${out_dir}/${filename}
 mv ${out_dir}/${patched_filename} $ota_dir
 systemctl restart podman-compose@lineageota.service
