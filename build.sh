@@ -1,4 +1,5 @@
 #!/bin/bash
+set -eu
 
 device="pdx245"
 download_base="https://download.lineageos.org"
