@@ -34,11 +34,11 @@ podman run \
 	--patch-arg='--re-sign=init_boot' \
 	--patch-arg='--rootless' \
 	--skip-custota-tool \
-	--tmp-dir /var/tmp/
+	--tmp-dir /var/tmp/ \
 	--module-fdroid /mnt/org.fdroid.fdroid.privileged.ota_2130.zip \
 	--module-mtgapps /mnt/MindTheGapps-16.0.0-arm64-20260409_073023.zip \
 	--module-bcr /mnt/BCR-3.4-release.zip \
-	--module-oemunlockonboot /mnt/OEMUnlockOnBoot-1.4-release.zip \
+	--module-oemunlockonboot /mnt/OEMUnlockOnBoot-1.4-release.zip
 
 echo "Moving ${patched_filename} to ${out_dir}"
 rm -f $ota_dir/*.zip
