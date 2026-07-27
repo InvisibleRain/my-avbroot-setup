@@ -37,5 +37,7 @@ podman run \
 	--module-mtgapps /mnt/MindTheGapps-16.0.0-arm64-20260409_073023.zip \
 	--module-bcr /mnt/BCR-3.4-release.zip \
 	--module-oemunlockonboot /mnt/OEMUnlockOnBoot-1.4-release.zip \
+
+rm -f $ota_dir/*.zip
 mv ${out_dir}/${patched_filename} $ota_dir
 systemctl restart podman-compose@lineageota.service
