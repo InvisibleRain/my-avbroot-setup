@@ -12,8 +12,11 @@ function download_module() {
 	module_api_url="https://api.github.com/repos/chenxiaolong/${1}/releases/latest"
 	module_json=$(curl -s $module_api_url)
 	module_zip_download_url=$(jq -r '.assets[] | select(.name | endswith("-release.zip")) | .browser_download_url' <(echo $module_json))
+	module_sig_download_url=$(jq -r '.assets[] | select(.name | endswith("-release.zip.sig")) | .browser_download_url' <(echo $module_json))
 	module_zip_filename=$(jq -r '.assets[] | select(.name | endswith("-release.zip")) | .name' <(echo $module_json))
+	module_sig_filename=$(jq -r '.assets[] | select(.name | endswith("-release.zip.sig")) | .name' <(echo $module_json))
 	curl -sL $module_zip_download_url -o ${out_dir}/${module_zip_filename}
+	curl -sL $module_sig_download_url -o ${out_dir}/${module_sig_filename}
 	echo $module_zip_filename
 }
 bcr_filename=$(download_module "BCR")
