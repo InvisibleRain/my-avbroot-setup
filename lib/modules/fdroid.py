@@ -10,6 +10,7 @@ from lib.filesystem import CpioFs, ExtFs
 from lib.modules import Module, ModuleRequirements
 
 logger = logging.getLogger(__name__)
+PGP_PUBLIC_KEY_FINGERPRINT_FDROID = '37D2C98789D8311948394E3E41E7044E1DBA2E89'
 
 class FdroidPrivilegedExtension(Module):
     NAME: str = 'fdroid'
@@ -17,12 +18,13 @@ class FdroidPrivilegedExtension(Module):
     @classmethod
     @override
     def add_args(cls, parser: argparse.ArgumentParser):
-        modules.add_unsigned_module_args(parser, cls.NAME)
+        modules.add_pgp_signed_module_args(parser, cls.NAME)
 
     def __init__(self, args: argparse.Namespace) -> None:
-        self.zip: Path = modules.get_unsigned_module_args(
+        self.zip: Path = modules.get_pgp_signed_module_args(
             args,
-            self.NAME
+            self.NAME,
+            PGP_PUBLIC_KEY_FINGERPRINT_FDROID,
         )
 
     @override
@@ -40,8 +42,6 @@ class FdroidPrivilegedExtension(Module):
         ext_fs: dict[str, ExtFs],
         sepolicies: Iterable[Path],
     ) -> None:
-        # FIXME add PGP signature verification
-        #verify_ssh_sig(module_zip, module_sig, SSH_PUBLIC_KEY_CHENXIAOLONG)
 
         logger.info(f'Injecting FDroid: {self.zip}')
         logger.info(f'This is not necessary for background updates on android > 13')
@@ -51,11 +51,6 @@ class FdroidPrivilegedExtension(Module):
             etc = 'system/etc/permissions/permissions_org.fdroid.fdroid.privileged.xml'
             apk = 'system/app/F-Droid/F-Droid.apk'
             priv = 'system/priv-app/F-DroidPrivilegedExtension/F-DroidPrivilegedExtension.apk'
-
-            # Add to filesystem entries.
-            # add_file_entry(entries, contexts, f'/{etc}', 0o644)
-            # add_file_entry(entries, contexts, f'/{apk}', 0o644)
-            # add_file_entry(entries, contexts, f'/{priv}', 0o644)
 
             # Extract file contents.
             tree_etc = system_fs.tree / etc
@@ -82,4 +77,3 @@ class FdroidPrivilegedExtension(Module):
                 system_fs,
                 output=priv
            )
-

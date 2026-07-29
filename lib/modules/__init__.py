@@ -12,6 +12,7 @@ import shutil
 import subprocess
 import tempfile
 import zipfile
+import gnupg
 
 from lib.filesystem import CpioFs, ExtFs
 
@@ -30,7 +31,6 @@ class MissingArgs(Exception):
     pass
 
 # FIXME: We should verify signature of MindTheGapps
-# and F-Droid
 def add_unsigned_module_args(parser: argparse.ArgumentParser, name: str):
     parser.add_argument(
         f'--module-{name}',
@@ -63,6 +63,16 @@ def verify_ssh_sig(zip: Path, sig: Path, public_key: str):
                 '-s', sig,
             ], stdin=f_zip)
 
+def is_pgp_signature_valid(zip: Path, asc: Path, public_key_fingerprint: str) -> bool:
+    logger.info(f'Verifying PGP signature: {zip}')
+
+    gpg = gnupg.GPG()
+    with open(asc, "rb") as asc:
+        verified = gpg.verify_file(asc,zip)
+    if verified.status == "signature valid" and verified.pubkey_fingerprint == public_key_fingerprint:
+        return True
+    else:
+        return False
 
 def add_signed_module_args(parser: argparse.ArgumentParser, name: str):
     parser.add_argument(
@@ -90,20 +100,32 @@ def get_signed_module_args(args: argparse.Namespace, name: str, public_key: str)
 
     return zip
 
-# FIXME: We should verify signature of MindTheGapps
-def add_unsigned_module_args(parser: argparse.ArgumentParser, name: str):
+def add_pgp_signed_module_args(parser: argparse.ArgumentParser, name: str):
     parser.add_argument(
         f'--module-{name}',
         type=Path,
         help=f'{name} module zip',
     )
+    parser.add_argument(
+        f'--module-{name}-asc',
+        type=Path,
+        help=f'{name} module PGP signature',
+    )
 
-def get_unsigned_module_args(args: argparse.Namespace, name: str) -> Path:
+def get_pgp_signed_module_args(args: argparse.Namespace, name: str, public_key_fingerprint: str) -> Path:
     zip: Path | None = getattr(args, f'module_{name}')
     if zip is None:
         raise MissingArgs()
 
-    return zip
+    asc: Path | None = getattr(args, f'module_{name}_asc')
+    if asc is None:
+        asc = Path(f'{zip}.asc')
+
+    if not is_pgp_signature_valid(zip, asc, public_key_fingerprint):
+        logger.error(f'Failed to verify PGP signature for {zip}')
+        raise Exception
+    else:
+        return zip
 
 def zip_extract(
     zip: zipfile.ZipFile,
