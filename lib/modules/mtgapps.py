@@ -17,10 +17,10 @@ class  MTGappsModule(Module):
     @classmethod
     @override
     def add_args(cls, parser: argparse.ArgumentParser):
-        modules.add_unsigned_module_args(parser, cls.NAME)
+        modules.add_mtgapps_signed_module_args(parser, cls.NAME)
 
     def __init__(self, args: argparse.Namespace) -> None:
-        self.zip: Path = modules.get_unsigned_module_args(
+        self.zip: Path = modules.get_mtgapps_signed_module_args(
             args,
             self.NAME
         )

@@ -7,14 +7,17 @@ from collections.abc import Iterable
 import dataclasses
 import functools
 import logging
-from pathlib import Path, PurePosixPath
+from pathlib import Path, PurePosixPath, PurePath
 import shutil
 import subprocess
 import tempfile
 import zipfile
 import gnupg
+import os
 
 from lib.filesystem import CpioFs, ExtFs
+from cryptography.exceptions import InvalidSignature
+from lib.mtgapp_verifier import SignedFile
 
 
 logger = logging.getLogger(__name__)
@@ -29,21 +32,6 @@ SSH_PUBLIC_KEY_CHENXIAOLONG = \
 
 class MissingArgs(Exception):
     pass
-
-# FIXME: We should verify signature of MindTheGapps
-def add_unsigned_module_args(parser: argparse.ArgumentParser, name: str):
-    parser.add_argument(
-        f'--module-{name}',
-        type=Path,
-        help=f'{name} module zip',
-    )
-
-def get_unsigned_module_args(args: argparse.Namespace, name: str) -> Path:
-    zip: Path | None = getattr(args, f'module_{name}')
-    if zip is None:
-        raise MissingArgs()
-
-    return zip
 
 def verify_ssh_sig(zip: Path, sig: Path, public_key: str):
     logger.info(f'Verifying SSH signature: {zip}')
@@ -62,6 +50,21 @@ def verify_ssh_sig(zip: Path, sig: Path, public_key: str):
                 '-n', 'file',
                 '-s', sig,
             ], stdin=f_zip)
+
+def verify_mtgapps_sig(zip: Path, cert: Path):
+    logger.info(f'Verifying MindTheGapps signature: {zip}')
+    # Disable SHA1 support
+    os.environ["OPENSSL_ENABLE_SHA1_SIGNATURES"] = "0"
+
+    signed_file = SignedFile(zip)
+    try:
+        signed_file.verify(cert)
+        logger.info("MindTheGapps signature verified successfully")
+    except (InvalidSignature,
+            ValueError,
+            TypeError,
+            OSError) as e:
+        logger.error(f"Failed to verify MindTheGapps signature: {e}")
 
 def is_pgp_signature_valid(zip: Path, asc: Path, public_key_fingerprint: str) -> bool:
     logger.info(f'Verifying PGP signature: {zip}')
@@ -126,6 +129,32 @@ def get_pgp_signed_module_args(args: argparse.Namespace, name: str, public_key_f
         raise Exception
     else:
         return zip
+
+def add_mtgapps_signed_module_args(parser: argparse.ArgumentParser, name: str):
+    parser.add_argument(
+        f'--module-{name}',
+        type=Path,
+        help=f'{name} module zip',
+    )
+    parser.add_argument(
+        f'--module-{name}-cert',
+        type=Path,
+        help=f'{name} MindTheGapps OTA cert',
+    )
+
+def get_mtgapps_signed_module_args(args: argparse.Namespace, name: str) -> Path:
+    zip: Path | None = getattr(args, f'module_{name}')
+    if zip is None:
+        raise MissingArgs()
+
+    cert: Path | None = getattr(args, f'module_{name}_cert')
+    if cert is None:
+        cert = PurePath.parent(zip) / 'release.x509.pem'
+
+
+    verify_mtgapps_sig(zip, cert)
+
+    return zip
 
 def zip_extract(
     zip: zipfile.ZipFile,
