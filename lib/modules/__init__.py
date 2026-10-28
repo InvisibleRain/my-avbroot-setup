@@ -12,11 +12,11 @@ import shutil
 import subprocess
 import tempfile
 import zipfile
-import gnupg
 import os
+import gnupg
 
-from lib.filesystem import CpioFs, ExtFs
 from cryptography.exceptions import InvalidSignature
+from lib.filesystem import CpioFs, ExtFs
 from lib.mtgapp_verifier import SignedFile
 
 
