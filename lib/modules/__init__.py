@@ -156,6 +156,20 @@ def get_mtgapps_signed_module_args(args: argparse.Namespace, name: str) -> Path:
 
     return zip
 
+def add_unsigned_module_args(parser: argparse.ArgumentParser, name: str):
+    parser.add_argument(
+        f'--module-{name}',
+        type=Path,
+        help=f'{name} module zip',
+    )
+
+def get_unsigned_module_args(args: argparse.Namespace, name: str) -> Path:
+    zip: Path | None = getattr(args, f'module_{name}')
+    if zip is None:
+        raise MissingArgs()
+
+    return zip
+
 def zip_extract(
     zip: zipfile.ZipFile,
     name: str,
@@ -171,6 +185,22 @@ def zip_extract(
         with zip.open(name, 'r') as f_in:
             shutil.copyfileobj(f_in, f_out)
 
+def zip_append_text(
+    zip: zipfile.ZipFile,
+    name: str,
+    fs: ExtFs,
+    mode: int = 0o644,
+    parent_mode: int = 0o755,
+    output: str | None = None,
+):
+    path = PurePosixPath(output or name)
+
+    fs.mkdir(path.parent, mode=parent_mode, parents=True, exist_ok=True)
+    with fs.open(path, 'r+b', mode=mode) as f_out:
+        with zip.open(name, 'r') as f_in:
+            original_text = f_out.read()
+            modified_text = original_text + f_in.read()
+            f_out.write(modified_text)
 
 @dataclasses.dataclass
 class ModuleRequirements:
@@ -212,6 +242,7 @@ def all_modules() -> list[type[Module]]:
     from lib.modules.oemunlockonboot import OEMUnlockOnBootModule
     from lib.modules.mtgapps import MTGappsModule
     from lib.modules.fdroid import FdroidPrivilegedExtension
+    from lib.modules.pixelregionalrestrictiondisabler import PixelRegionalRestrictionDisabler
 
     return [
         AlterInstallerModule,
@@ -221,4 +252,5 @@ def all_modules() -> list[type[Module]]:
         OEMUnlockOnBootModule,
         MTGappsModule,
         FdroidPrivilegedExtension,
+        PixelRegionalRestrictionDisabler,
     ]
