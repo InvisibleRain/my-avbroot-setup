@@ -41,6 +41,7 @@ if [ $distro = "grapheneos" ]; then
         echo "Downloading modules"
         bcr_filename=$(download_module "BCR")
         custota_filename=$(download_module "Custota")
+        pixelunrestrict_filename="PixelRegionalRestrictionsDisabler.zip"
 
         patched_filename="${device}-ota_update-${grapheneos_latest_version}-custota-bcr.zip"
         echo "Building $patched_filename"
@@ -57,7 +58,8 @@ if [ $distro = "grapheneos" ]; then
                 --patch-arg='--rootless' \
                 --tmp-dir /var/tmp/ \
                 --module-bcr /mnt/${bcr_filename} \
-                --module-custota /mnt/${custota_filename}
+                --module-custota /mnt/${custota_filename} \
+                --module-pixelregionalrestrictiondisabler /mnt/${pixelunrestrict_filename}
 
         echo "Moving ${patched_filename} to ${out_dir}"
         rm -f $custota_dir/*.zip \
