@@ -63,8 +63,10 @@ if [ $distro = "grapheneos" ]; then
 
         echo "Moving ${patched_filename} to ${out_dir}"
         rm -f $custota_dir/*.zip \
+               $custota_dir/*.csig \
                 ${out_dir}/${grapheneos_ota_filename}
         mv ${out_dir}/${patched_filename} $custota_dir
+        mv ${out_dir}/${patched_filename}.csig $custota_dir
 
 elif [ $distro = "lineageos" ]; then
         echo "Building LineageOS"
